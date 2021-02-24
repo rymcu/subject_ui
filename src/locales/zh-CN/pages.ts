@@ -20,7 +20,7 @@ export default {
   'pages.login.submit': '登录',
   'pages.login.loginWith': '其他登录方式 :',
   'pages.login.registerAccount': '注册账户',
-  'pages.welcome.advancedComponent': '高级表格',
+  'pages.welcome.advancedComponent': '题库',
   'pages.welcome.link': '欢迎使用',
   'pages.welcome.advancedLayout': '高级布局',
   'pages.welcome.alertMessage': '更快更强的重型组件，已经发布。',

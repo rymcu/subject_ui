@@ -43,6 +43,12 @@
     component: './TableList',
   },
   {
+    name: 'list.question-list',
+    icon: 'table',
+    path: '/question',
+    component: './question',
+  },
+  {
     path: '/',
     redirect: '/welcome',
   },

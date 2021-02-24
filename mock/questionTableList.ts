@@ -31,7 +31,7 @@ const genList = (current: number, pageSize: number) => {
   return tableListDataSource;
 };
 
-let tableListDataSource = genList(1, 115);
+let tableListDataSource = genList(1, 6);
 
 function getRule(req: Request, res: Response, u: string) {
   let realUrl = u;
@@ -170,6 +170,6 @@ function postRule(req: Request, res: Response, u: string, b: Request) {
 }
 
 export default {
-  'GET /api/rule': getRule,
-  'POST /api/rule': postRule,
+  'GET /api/question': getRule,
+  'POST /api/question': postRule,
 };
