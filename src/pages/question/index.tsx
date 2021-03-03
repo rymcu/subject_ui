@@ -1,5 +1,4 @@
-import { PlusOutlined } from '@ant-design/icons';
-import { Button, message, Input, Drawer } from 'antd';
+import { Button, message, Drawer } from 'antd';
 import React, { useState, useRef } from 'react';
 import { useIntl, FormattedMessage } from 'umi';
 import { PageContainer, FooterToolbar } from '@ant-design/pro-layout';
@@ -17,7 +16,7 @@ import { queryList, addRule, updateRule, removeRule } from '@/services/question/
  *
  * @param fields
  */
-const handleAdd = async (fields: API.RuleListItem) => {
+const handleAdd = async (fields: API.QuestionInfoListItem) => {
   const hide = message.loading('正在添加');
   try {
     await addRule({ ...fields });
@@ -60,12 +59,12 @@ const handleUpdate = async (fields: FormValueType) => {
  *
  * @param selectedRows
  */
-const handleRemove = async (selectedRows: API.RuleListItem[]) => {
+const handleRemove = async (selectedRows: API.QuestionInfoListItem[]) => {
   const hide = message.loading('正在删除');
   if (!selectedRows) return true;
   try {
     await removeRule({
-      key: selectedRows.map((row) => row.key),
+      key: selectedRows.map((row) => row.id),
     });
     hide();
     message.success('删除成功，即将刷新');
@@ -86,26 +85,22 @@ const TableList: React.FC = () => {
   const [showDetail, setShowDetail] = useState<boolean>(false);
 
   const actionRef = useRef<ActionType>();
-  const [currentRow, setCurrentRow] = useState<API.RuleListItem>();
-  const [selectedRowsState, setSelectedRows] = useState<API.RuleListItem[]>([]);
+  const [currentRow, setCurrentRow] = useState<API.QuestionInfoListItem>();
+  const [selectedRowsState, setSelectedRows] = useState<API.QuestionInfoListItem[]>([]);
 
   /** 国际化配置 */
   const intl = useIntl();
 
-  const columns: ProColumns<API.RuleListItem>[] = [
+  const columns: ProColumns<API.QuestionInfoListItem>[] = [
     {
-      title: (
-        <FormattedMessage
-          id="pages.searchTable.updateForm.ruleName.nameLabel"
-          defaultMessage="规则名称"
-        />
-      ),
-      dataIndex: 'name',
-      tip: '规则名称是唯一的 key',
+      title: <FormattedMessage id="pages.questionInfo.id" defaultMessage="试题编号" />,
+      dataIndex: 'id',
+      tip: '试题编号是唯一的 key',
       render: (dom, entity) => {
         return (
           <a
             onClick={() => {
+              console.log(entity);
               setCurrentRow(entity);
               setShowDetail(true);
             }}
@@ -116,80 +111,83 @@ const TableList: React.FC = () => {
       },
     },
     {
-      title: <FormattedMessage id="pages.searchTable.titleDesc" defaultMessage="描述" />,
-      dataIndex: 'desc',
-      valueType: 'textarea',
+      title: <FormattedMessage id="pages.questionInfo.questionType" defaultMessage="试题类型" />,
+      dataIndex: 'questionType',
+      valueEnum: {
+        0: {
+          text: <FormattedMessage id="1" defaultMessage="未知" />,
+          status: 'Processing',
+        },
+        1: {
+          text: <FormattedMessage id="1" defaultMessage="选择题" />,
+          status: 'Processing',
+        },
+        2: {
+          text: <FormattedMessage id="1" defaultMessage="多选题" />,
+          status: 'Processing',
+        },
+        3: {
+          text: <FormattedMessage id="1" defaultMessage="判断题" />,
+          status: 'Processing',
+        },
+      },
+      sorter: true,
     },
     {
-      title: <FormattedMessage id="pages.searchTable.titleCallNo" defaultMessage="服务调用次数" />,
-      dataIndex: 'callNo',
+      title: <FormattedMessage id="pages.questionInfo.questionLevel" defaultMessage="难度等级" />,
+      dataIndex: 'questionLevel',
       sorter: true,
       hideInForm: true,
       renderText: (val: string) =>
         `${val}${intl.formatMessage({
-          id: 'pages.searchTable.tenThousand',
-          defaultMessage: ' 万 ',
+          id: 'pages.questionInfo.lv',
+          defaultMessage: ' 级 ',
         })}`,
     },
     {
-      title: <FormattedMessage id="pages.searchTable.titleStatus" defaultMessage="状态" />,
-      dataIndex: 'status',
+      title: <FormattedMessage id="pages.questionInfo.remark" defaultMessage="备注" />,
+      dataIndex: 'remark',
       hideInForm: true,
+      valueType: 'textarea',
+    },
+    {
+      title: <FormattedMessage id="pages.searchTable.titleUpdatedAt" defaultMessage="来源" />,
+      sorter: true,
+      dataIndex: 'srcType',
+      valueType: 'textarea',
+    },
+    {
+      title: <FormattedMessage id="pages.searchTable.titleUpdatedAt" defaultMessage="展示状态" />,
+      sorter: true,
+      dataIndex: 'showFlag',
       valueEnum: {
-        0: {
-          text: (
-            <FormattedMessage id="pages.searchTable.nameStatus.default" defaultMessage="关闭" />
-          ),
-          status: 'Default',
-        },
-        1: {
-          text: (
-            <FormattedMessage id="pages.searchTable.nameStatus.running" defaultMessage="运行中" />
-          ),
+        true: {
+          text: <FormattedMessage id="1" defaultMessage="展示" />,
           status: 'Processing',
         },
-        2: {
-          text: (
-            <FormattedMessage id="pages.searchTable.nameStatus.online" defaultMessage="已上线" />
-          ),
-          status: 'Success',
-        },
-        3: {
-          text: (
-            <FormattedMessage id="pages.searchTable.nameStatus.abnormal" defaultMessage="异常" />
-          ),
+        false: {
+          text: <FormattedMessage id="1" defaultMessage="隐藏" />,
           status: 'Error',
         },
       },
     },
     {
-      title: (
-        <FormattedMessage id="pages.searchTable.titleUpdatedAt" defaultMessage="上次调度时间" />
-      ),
+      title: <FormattedMessage id="pages.searchTable.titleUpdatedAt" defaultMessage="题目状态" />,
       sorter: true,
-      dataIndex: 'updatedAt',
-      valueType: 'dateTime',
-      renderFormItem: (item, { defaultRender, ...rest }, form) => {
-        const status = form.getFieldValue('status');
-        if (`${status}` === '0') {
-          return false;
-        }
-        if (`${status}` === '3') {
-          return (
-            <Input
-              {...rest}
-              placeholder={intl.formatMessage({
-                id: 'pages.searchTable.exception',
-                defaultMessage: '请输入异常原因！',
-              })}
-            />
-          );
-        }
-        return defaultRender(item);
+      dataIndex: 'errorFlag',
+      valueEnum: {
+        true: {
+          text: <FormattedMessage id="1" defaultMessage="有误" />,
+          status: 'Error',
+        },
+        false: {
+          text: <FormattedMessage id="1" defaultMessage="无误" />,
+          status: 'Processing',
+        },
       },
     },
     {
-      title: <FormattedMessage id="pages.searchTable.titleOption" defaultMessage="操作" />,
+      title: <FormattedMessage id="pages.searchTable.titleOption" defaultMessage="状态修改" />,
       dataIndex: 'option',
       valueType: 'option',
       render: (_, record) => [
@@ -200,10 +198,22 @@ const TableList: React.FC = () => {
             setCurrentRow(record);
           }}
         >
-          <FormattedMessage id="pages.searchTable.config" defaultMessage="配置" />
+          <FormattedMessage
+            id="pages.searchTable.config"
+            defaultMessage={record.errorFlag ? '无误' : '有误'}
+          />
         </a>,
-        <a key="subscribeAlert" href="https://procomponents.ant.design/">
-          <FormattedMessage id="pages.searchTable.subscribeAlert" defaultMessage="订阅警报" />
+        <a
+          key="config"
+          onClick={() => {
+            handleUpdateModalVisible(true);
+            setCurrentRow(record);
+          }}
+        >
+          <FormattedMessage
+            id="pages.searchTable.config"
+            defaultMessage={record.errorFlag ? '展示' : '隐藏'}
+          />
         </a>,
       ],
     },
@@ -211,27 +221,17 @@ const TableList: React.FC = () => {
 
   return (
     <PageContainer>
-      <ProTable<API.RuleListItem, API.PageParams>
+      <ProTable<API.QuestionInfoListItem, API.PageParams>
         headerTitle={intl.formatMessage({
-          id: 'pages.searchTable.title',
-          defaultMessage: '查询表格',
+          id: '1',
+          defaultMessage: '查询试题',
         })}
         actionRef={actionRef}
-        rowKey="key"
+        rowKey="id"
         search={{
           labelWidth: 120,
         }}
-        toolBarRender={() => [
-          <Button
-            type="primary"
-            key="primary"
-            onClick={() => {
-              handleModalVisible(true);
-            }}
-          >
-            <PlusOutlined /> <FormattedMessage id="pages.searchTable.new" defaultMessage="新建" />
-          </Button>,
-        ]}
+        toolBarRender={() => []}
         request={queryList}
         columns={columns}
         rowSelection={{
@@ -248,14 +248,6 @@ const TableList: React.FC = () => {
               <a style={{ fontWeight: 600 }}>{selectedRowsState.length}</a>{' '}
               <FormattedMessage id="pages.searchTable.item" defaultMessage="项" />
               &nbsp;&nbsp;
-              <span>
-                <FormattedMessage
-                  id="pages.searchTable.totalServiceCalls"
-                  defaultMessage="服务调用次数总计"
-                />{' '}
-                {selectedRowsState.reduce((pre, item) => pre + item.callNo!, 0)}{' '}
-                <FormattedMessage id="pages.searchTable.tenThousand" defaultMessage="万" />
-              </span>
             </div>
           }
         >
@@ -266,10 +258,34 @@ const TableList: React.FC = () => {
               actionRef.current?.reloadAndRest?.();
             }}
           >
-            <FormattedMessage id="pages.searchTable.batchDeletion" defaultMessage="批量删除" />
+            <FormattedMessage id="pages.searchTable.batchDeletion" defaultMessage="批量展示" />
           </Button>
-          <Button type="primary">
-            <FormattedMessage id="pages.searchTable.batchApproval" defaultMessage="批量审批" />
+          <Button
+            onClick={async () => {
+              await handleRemove(selectedRowsState);
+              setSelectedRows([]);
+              actionRef.current?.reloadAndRest?.();
+            }}
+          >
+            <FormattedMessage id="pages.searchTable.batchDeletion" defaultMessage="批量隐藏" />
+          </Button>
+          <Button
+            onClick={async () => {
+              await handleRemove(selectedRowsState);
+              setSelectedRows([]);
+              actionRef.current?.reloadAndRest?.();
+            }}
+          >
+            <FormattedMessage id="pages.searchTable.batchDeletion" defaultMessage="批量有误" />
+          </Button>
+          <Button
+            onClick={async () => {
+              await handleRemove(selectedRowsState);
+              setSelectedRows([]);
+              actionRef.current?.reloadAndRest?.();
+            }}
+          >
+            <FormattedMessage id="pages.searchTable.batchDeletion" defaultMessage="批量无误" />
           </Button>
         </FooterToolbar>
       )}
@@ -282,7 +298,7 @@ const TableList: React.FC = () => {
         visible={createModalVisible}
         onVisibleChange={handleModalVisible}
         onFinish={async (value) => {
-          const success = await handleAdd(value as API.RuleListItem);
+          const success = await handleAdd(value as API.QuestionInfoListItem);
           if (success) {
             handleModalVisible(false);
             if (actionRef.current) {
@@ -336,17 +352,17 @@ const TableList: React.FC = () => {
         }}
         closable={false}
       >
-        {currentRow?.name && (
-          <ProDescriptions<API.RuleListItem>
+        {currentRow?.id && (
+          <ProDescriptions<API.QuestionInfoListItem>
             column={2}
-            title={currentRow?.name}
+            title={currentRow?.id}
             request={async () => ({
               data: currentRow || {},
             })}
             params={{
-              id: currentRow?.name,
+              id: currentRow?.id,
             }}
-            columns={columns as ProDescriptionsItemProps<API.RuleListItem>[]}
+            columns={columns as ProDescriptionsItemProps<API.QuestionInfoListItem>[]}
           />
         )}
       </Drawer>

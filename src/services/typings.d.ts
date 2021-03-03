@@ -30,8 +30,8 @@ declare namespace API {
   };
 
   type PageParams = {
-    current?: number;
-    pageSize?: number;
+    page?: number;
+    rows?: number;
   };
 
   type RuleListItem = {
@@ -56,6 +56,22 @@ declare namespace API {
     success?: boolean;
   };
 
+  type QuestionInfoListItem = {
+    id?: number;
+    questionLevel?: number;
+    questionType?: number;
+    remark?: string;
+    showFlag?: boolean;
+    srcType?: string;
+    errorFlag?: boolean;
+  };
+
+  type QuestionInfoList = {
+    total?: number;
+    data?: QuestionInfoListItem[];
+  };
+
+  infoList;
   type FakeCaptcha = {
     code?: number;
     status?: string;

@@ -22,7 +22,7 @@ export type UpdateFormProps = {
   onCancel: (flag?: boolean, formVals?: FormValueType) => void;
   onSubmit: (values: FormValueType) => Promise<void>;
   updateModalVisible: boolean;
-  values: Partial<API.RuleListItem>;
+  values: Partial<API.QuestionInfoListItem>;
 };
 
 const UpdateForm: React.FC<UpdateFormProps> = (props) => {
@@ -56,8 +56,8 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
     >
       <StepsForm.StepForm
         initialValues={{
-          name: props.values.name,
-          desc: props.values.desc,
+          name: props.values.id,
+          desc: props.values.questionType,
         }}
         title={intl.formatMessage({
           id: 'pages.searchTable.updateForm.basicConfig',

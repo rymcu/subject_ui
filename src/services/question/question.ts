@@ -2,18 +2,18 @@
 /* eslint-disable */
 import { request } from 'umi';
 
-/** 获取规则列表 GET /api/question */
+/** 获取题列表 GET /api/question */
 export async function queryList(
   params: {
     // query
     /** 当前的页码 */
-    current?: number;
+    page?: number;
     /** 页面的容量 */
-    pageSize?: number;
+    rows?: number;
   },
   options?: { [key: string]: any },
 ) {
-  return request<API.RuleList>('/api/question', {
+  return request<API.QuestionInfoList>('/api/question/list', {
     method: 'GET',
     params: {
       ...params,
