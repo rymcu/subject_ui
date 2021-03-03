@@ -9,7 +9,13 @@ import type { ProDescriptionsItemProps } from '@ant-design/pro-descriptions';
 import ProDescriptions from '@ant-design/pro-descriptions';
 import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './components/UpdateForm';
-import { queryList, addRule, updateRule, removeRule } from '@/services/question/question';
+import {
+  queryList,
+  addRule,
+  updateRule,
+  removeRule,
+  getBySqId,
+} from '@/services/question/question';
 
 /**
  * 添加节点
@@ -100,7 +106,8 @@ const TableList: React.FC = () => {
         return (
           <a
             onClick={() => {
-              console.log(entity);
+              const question = getBySqId(entity.id);
+              console.log(question);
               setCurrentRow(entity);
               setShowDetail(true);
             }}
@@ -187,9 +194,10 @@ const TableList: React.FC = () => {
       },
     },
     {
-      title: <FormattedMessage id="pages.searchTable.titleOption" defaultMessage="状态修改" />,
+      title: <FormattedMessage id="pages.searchTable.titleOption" defaultMessage="操作" />,
       dataIndex: 'option',
       valueType: 'option',
+      align: 'center',
       render: (_, record) => [
         <a
           key="config"
@@ -214,6 +222,15 @@ const TableList: React.FC = () => {
             id="pages.searchTable.config"
             defaultMessage={record.errorFlag ? '展示' : '隐藏'}
           />
+        </a>,
+        <a
+          key="config"
+          onClick={() => {
+            handleUpdateModalVisible(true);
+            setCurrentRow(record);
+          }}
+        >
+          <FormattedMessage id="pages.searchTable.config" defaultMessage="编辑" />
         </a>,
       ],
     },
@@ -350,7 +367,7 @@ const TableList: React.FC = () => {
           setCurrentRow(undefined);
           setShowDetail(false);
         }}
-        closable={false}
+        closable={true}
       >
         {currentRow?.id && (
           <ProDescriptions<API.QuestionInfoListItem>

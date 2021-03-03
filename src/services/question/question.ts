@@ -22,6 +22,13 @@ export async function queryList(
   });
 }
 
+/** 获取题列表 GET /api/question */
+export async function getBySqId(sqId?: number) {
+  return request('/api/question/' + sqId, {
+    method: 'GET',
+  });
+}
+
 /** 新建规则 PUT /api/question */
 export async function updateRule(options?: { [key: string]: any }) {
   return request<API.RuleListItem>('/api/question', {
