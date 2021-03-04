@@ -71,7 +71,31 @@ declare namespace API {
     data?: QuestionInfoListItem[];
   };
 
-  infoList;
+  type questionOption = {
+    id?: number;
+    subjectQuestionId?: number;
+    optionName?: string;
+    optionContent?: string;
+    answerFlag?: boolean;
+  };
+  type question = {
+    id?: number;
+    questionLevel?: number;
+    questionType?: number;
+    remark?: string;
+    questionContent?: string;
+    showFlag?: boolean;
+    srcType?: string;
+    errorFlag?: boolean;
+    options?: questionOption[];
+  };
+  type questionRsp = {
+    success?: boolean;
+    data?: question;
+    code?: number;
+    message?: String;
+  };
+
   type FakeCaptcha = {
     code?: number;
     status?: string;

@@ -16,6 +16,7 @@ import {
   removeRule,
   getBySqId,
 } from '@/services/question/question';
+import Checkbox from 'antd/lib/checkbox/Checkbox';
 
 /**
  * 添加节点
@@ -91,11 +92,146 @@ const TableList: React.FC = () => {
   const [showDetail, setShowDetail] = useState<boolean>(false);
 
   const actionRef = useRef<ActionType>();
-  const [currentRow, setCurrentRow] = useState<API.QuestionInfoListItem>();
+  const [currentRow, setCurrentRow] = useState<API.question>();
   const [selectedRowsState, setSelectedRows] = useState<API.QuestionInfoListItem[]>([]);
 
   /** 国际化配置 */
   const intl = useIntl();
+  const questionPrannel: ProColumns<API.question>[] = [
+    {
+      title: <FormattedMessage id="pages.questionInfo.id" defaultMessage="试题编号" />,
+      dataIndex: 'id',
+      tip: '试题编号是唯一的 key',
+    },
+    {
+      title: <FormattedMessage id="pages.questionInfo.questionType" defaultMessage="试题类型" />,
+      dataIndex: 'questionType',
+      valueEnum: {
+        0: {
+          text: <FormattedMessage id="1" defaultMessage="未知" />,
+          status: 'Processing',
+        },
+        1: {
+          text: <FormattedMessage id="1" defaultMessage="选择题" />,
+          status: 'Processing',
+        },
+        2: {
+          text: <FormattedMessage id="1" defaultMessage="多选题" />,
+          status: 'Processing',
+        },
+        3: {
+          text: <FormattedMessage id="1" defaultMessage="判断题" />,
+          status: 'Processing',
+        },
+      },
+      sorter: true,
+    },
+    {
+      title: <FormattedMessage id="pages.questionInfo.questionLevel" defaultMessage="难度等级" />,
+      dataIndex: 'questionLevel',
+      sorter: true,
+      hideInForm: true,
+      renderText: (val: string) =>
+        `${val}${intl.formatMessage({
+          id: 'pages.questionInfo.lv',
+          defaultMessage: ' 级 ',
+        })}`,
+    },
+    {
+      title: <FormattedMessage id="pages.questionInfo.remark" defaultMessage="备注" />,
+      dataIndex: 'remark',
+      hideInForm: true,
+      valueType: 'textarea',
+    },
+    {
+      title: <FormattedMessage id="pages.searchTable.titleUpdatedAt" defaultMessage="来源" />,
+      sorter: true,
+      dataIndex: 'srcType',
+      valueType: 'textarea',
+    },
+    {
+      title: <FormattedMessage id="pages.searchTable.titleUpdatedAt" defaultMessage="展示状态" />,
+      sorter: true,
+      dataIndex: 'showFlag',
+      valueEnum: {
+        true: {
+          text: <FormattedMessage id="1" defaultMessage="展示" />,
+          status: 'Processing',
+        },
+        false: {
+          text: <FormattedMessage id="1" defaultMessage="隐藏" />,
+          status: 'Error',
+        },
+      },
+    },
+    {
+      title: <FormattedMessage id="pages.searchTable.titleUpdatedAt" defaultMessage="题目状态" />,
+      sorter: true,
+      dataIndex: 'errorFlag',
+      valueEnum: {
+        true: {
+          text: <FormattedMessage id="1" defaultMessage="有误" />,
+          status: 'Error',
+        },
+        false: {
+          text: <FormattedMessage id="1" defaultMessage="无误" />,
+          status: 'Processing',
+        },
+      },
+    },
+    {
+      title: <FormattedMessage id="pages.searchTable.titleUpdatedAt" defaultMessage="试题" />,
+      sorter: true,
+      dataIndex: 'questionContent',
+      valueType: 'textarea',
+    },
+
+    {
+      title: '选项列表',
+      dataIndex: '',
+    },
+    {
+      title: <FormattedMessage id="pages.searchTable.titleOption" defaultMessage="操作" />,
+      dataIndex: 'option',
+      valueType: 'option',
+      align: 'center',
+      render: (_, record) => [
+        <a
+          key="config"
+          onClick={() => {
+            handleUpdateModalVisible(true);
+            setCurrentRow(record);
+          }}
+        >
+          <FormattedMessage
+            id="pages.searchTable.config"
+            defaultMessage={record.errorFlag ? '无误' : '有误'}
+          />
+        </a>,
+        <a
+          key="config"
+          onClick={() => {
+            handleUpdateModalVisible(true);
+            setCurrentRow(record);
+          }}
+        >
+          <FormattedMessage
+            id="pages.searchTable.config"
+            defaultMessage={record.errorFlag ? '展示' : '隐藏'}
+          />
+        </a>,
+        <a
+          key="config"
+          onClick={() => {
+            handleUpdateModalVisible(true);
+            setCurrentRow(record);
+          }}
+        >
+          <FormattedMessage id="pages.searchTable.config" defaultMessage="编辑" />
+        </a>,
+      ],
+    },
+  ];
 
   const columns: ProColumns<API.QuestionInfoListItem>[] = [
     {
@@ -105,11 +241,11 @@ const TableList: React.FC = () => {
       render: (dom, entity) => {
         return (
           <a
-            onClick={() => {
-              const question = getBySqId(entity.id);
-              console.log(question);
-              setCurrentRow(entity);
-              setShowDetail(true);
+            onClick={async () => {
+              getBySqId(entity.id).then((data) => {
+                setCurrentRow(data.data);
+                setShowDetail(true);
+              });
             }}
           >
             {dom}
@@ -370,8 +506,8 @@ const TableList: React.FC = () => {
         closable={true}
       >
         {currentRow?.id && (
-          <ProDescriptions<API.QuestionInfoListItem>
-            column={2}
+          <ProDescriptions<API.question>
+            column={1}
             title={currentRow?.id}
             request={async () => ({
               data: currentRow || {},
@@ -379,9 +515,18 @@ const TableList: React.FC = () => {
             params={{
               id: currentRow?.id,
             }}
-            columns={columns as ProDescriptionsItemProps<API.QuestionInfoListItem>[]}
+            columns={questionPrannel as ProDescriptionsItemProps<API.question>[]}
           />
         )}
+        {currentRow?.options?.map((item) => {
+          return (
+            <div>
+              <Checkbox checked={item.answerFlag === true}>{item.optionName}、</Checkbox>&nbsp;
+              {item.optionContent}
+              {item.answerFlag} <br />
+            </div>
+          );
+        })}
       </Drawer>
     </PageContainer>
   );
