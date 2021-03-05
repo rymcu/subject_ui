@@ -22,7 +22,7 @@ export type UpdateFormProps = {
   onCancel: (flag?: boolean, formVals?: FormValueType) => void;
   onSubmit: (values: FormValueType) => Promise<void>;
   updateModalVisible: boolean;
-  values: Partial<API.QuestionInfoListItem>;
+  values: Partial<API.question>;
 };
 
 const UpdateForm: React.FC<UpdateFormProps> = (props) => {

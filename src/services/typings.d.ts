@@ -56,21 +56,6 @@ declare namespace API {
     success?: boolean;
   };
 
-  type QuestionInfoListItem = {
-    id?: number;
-    questionLevel?: number;
-    questionType?: number;
-    remark?: string;
-    showFlag?: boolean;
-    srcType?: string;
-    errorFlag?: boolean;
-  };
-
-  type QuestionInfoList = {
-    total?: number;
-    data?: QuestionInfoListItem[];
-  };
-
   type questionOption = {
     id?: number;
     subjectQuestionId?: number;
@@ -78,6 +63,7 @@ declare namespace API {
     optionContent?: string;
     answerFlag?: boolean;
   };
+
   type question = {
     id?: number;
     questionLevel?: number;
@@ -89,6 +75,12 @@ declare namespace API {
     errorFlag?: boolean;
     options?: questionOption[];
   };
+
+  type QuestionInfoList = {
+    total?: number;
+    data?: question[];
+  };
+
   type questionRsp = {
     success?: boolean;
     data?: question;
