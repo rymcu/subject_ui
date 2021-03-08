@@ -24,29 +24,29 @@ export async function queryList(
 
 /** 获取题列表 GET /api/question */
 export async function getBySqId(sqId?: number) {
-  return request<API.questionRsp>('/api/question/' + sqId, {
+  return request<API.QuestionRsp>('/api/question/' + sqId, {
     method: 'GET',
   });
 }
 
 /** 新建规则 PUT /api/question */
 export async function updateRule(options?: { [key: string]: any }) {
-  return request<API.RuleListItem>('/api/question', {
+  return request<API.QuestionOption>('/api/question', {
     method: 'PUT',
     ...(options || {}),
   });
 }
 
 /** 新建规则 POST /api/question */
-export async function addRule(options?: { [key: string]: any }) {
-  return request<API.RuleListItem>('/api/question', {
+export async function editQuestion(body: API.Question,options?: { [key: string]: any }) {
+  return request<API.Question>('/api/question', {
     method: 'POST',
-    ...(options || {}),
+    data: body
   });
 }
 
 /** 删除规则 DELETE /api/question */
-export async function removeRule(options?: { [key: string]: any }) {
+export async function removeQuestion(options?: { [key: string]: any }) {
   return request<Record<string, any>>('/api/question', {
     method: 'DELETE',
     ...(options || {}),

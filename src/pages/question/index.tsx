@@ -1,28 +1,28 @@
 import { Button, message, Drawer } from 'antd';
 import React, { useState, useRef } from 'react';
-import { useIntl, FormattedMessage } from 'umi';
+import { useIntl } from 'umi';
 import { PageContainer, FooterToolbar } from '@ant-design/pro-layout';
-import type { ProColumns, ActionType } from '@ant-design/pro-table';
+import { ProColumns, ActionType } from '@ant-design/pro-table';
 import ProTable from '@ant-design/pro-table';
-import { ModalForm, ProFormList, ProFormSelect } from '@ant-design/pro-form';
+import ProForm, { ModalForm, ProFormCheckbox, ProFormDigit, ProFormGroup, ProFormList, ProFormSelect, ProFormText, ProFormTextArea } from '@ant-design/pro-form';
 import type { ProDescriptionsItemProps } from '@ant-design/pro-descriptions';
 import ProDescriptions from '@ant-design/pro-descriptions';
-import type { FormValueType } from './components/UpdateForm';
-import UpdateForm from './components/UpdateForm';
-import { queryList, addRule, updateRule, removeRule } from '@/services/question/question';
+import { editQuestion, queryList } from '@/services/question/question';
 import Checkbox from 'antd/lib/checkbox/Checkbox';
 import { MehTwoTone, PlusOutlined } from '@ant-design/icons';
 import styles from './index.less';
+import { removeRule } from '@/services/ant-design-pro/rule';
+import { isNil, isNull } from 'lodash';
 
 /**
  * 添加节点
  *
  * @param fields
  */
-const handleAdd = async (fields: API.question) => {
+const handleEdit = async (fields: API.Question) => {
   const hide = message.loading('正在添加');
   try {
-    await addRule({ ...fields });
+    editQuestion({ ...fields });
     hide();
     message.success('添加成功');
     return true;
@@ -33,36 +33,13 @@ const handleAdd = async (fields: API.question) => {
   }
 };
 
-/**
- * 更新节点
- *
- * @param fields
- */
-const handleUpdate = async (fields: FormValueType) => {
-  const hide = message.loading('正在配置');
-  try {
-    await updateRule({
-      name: fields.name,
-      desc: fields.desc,
-      key: fields.key,
-    });
-    hide();
-
-    message.success('配置成功');
-    return true;
-  } catch (error) {
-    hide();
-    message.error('配置失败请重试！');
-    return false;
-  }
-};
 
 /**
  * 删除节点
  *
  * @param selectedRows
  */
-const handleRemove = async (selectedRows: API.question[]) => {
+const handleRemove = async (selectedRows: API.Question[]) => {
   const hide = message.loading('正在删除');
   if (!selectedRows) return true;
   try {
@@ -79,25 +56,25 @@ const handleRemove = async (selectedRows: API.question[]) => {
   }
 };
 
-const TableList: React.FC = () => {
+const QuestionPannelList: React.FC = () => {
   /** 新建窗口的弹窗 */
-  const [createModalVisible, handleModalVisible] = useState<boolean>(false);
+  const [createModalVisible, handlCreateModalVisible] = useState<boolean>(false);
   /** 分布更新窗口的弹窗 */
   const [updateModalVisible, handleUpdateModalVisible] = useState<boolean>(false);
 
   const [showDetail, setShowDetail] = useState<boolean>(false);
 
   const actionRef = useRef<ActionType>();
-  const [currentRow, setCurrentRow] = useState<API.question>();
-  const [selectedRowsState, setSelectedRows] = useState<API.question[]>([]);
-
-  /** 国际化配置 */
-  const intl = useIntl();
-  // 展开行  可控
-  //  const [expKeys, setExpKeys] = React.useState(columns && columns.map(i => i.id));
-  const columns: ProColumns<API.question>[] = [
+  const [currentRow, setCurrentRow] = useState<API.Question>();
+  const [currentQuestion, setCurrentQuestion] = useState<API.Question>();
+  const [selectedRowsState, setSelectedRows] = useState<API.Question[]>([]);
+  const setCurrentRowQuestion = (item: API.Question) => {
+    setCurrentQuestion(item)
+    handleUpdateModalVisible(true);
+  }
+  const columns: ProColumns<API.Question>[] = [
     {
-      title: <FormattedMessage id="pages.questionInfo.id" defaultMessage="试题编号" />,
+      title: "试题编号",
       dataIndex: 'id',
       tip: '试题编号是唯一的 key',
       render: (dom, entity) => {
@@ -114,131 +91,123 @@ const TableList: React.FC = () => {
       },
     },
     {
-      title: <FormattedMessage id="pages.questionInfo.questionType" defaultMessage="试题类型" />,
+      title: "试题类型",
       dataIndex: 'questionType',
       valueEnum: {
         0: {
-          text: <FormattedMessage id="1" defaultMessage="未知" />,
+          text: "未知",
           status: 'Processing',
         },
         1: {
-          text: <FormattedMessage id="1" defaultMessage="选择题" />,
+          text: "单选题",
           status: 'Processing',
         },
         2: {
-          text: <FormattedMessage id="1" defaultMessage="多选题" />,
+          text: "多选题",
           status: 'Processing',
         },
         3: {
-          text: <FormattedMessage id="1" defaultMessage="判断题" />,
+          text: "判断题",
+          status: 'Processing',
+        },
+        4: {
+          text: "填空题",
+          status: 'Processing',
+        },
+        5: {
+          text: "问答题",
           status: 'Processing',
         },
       },
       sorter: true,
     },
     {
-      title: <FormattedMessage id="pages.questionInfo.questionLevel" defaultMessage="难度等级" />,
+      title: "难度等级",
       dataIndex: 'questionLevel',
       sorter: true,
       hideInForm: true,
-      renderText: (val: string) =>
-        `${val}${intl.formatMessage({
-          id: 'pages.questionInfo.lv',
-          defaultMessage: ' 级 ',
-        })}`,
+      valueType: 'text',
     },
     {
-      title: <FormattedMessage id="pages.questionInfo.remark" defaultMessage="备注" />,
+      title: "备注",
       dataIndex: 'remark',
       hideInForm: true,
       valueType: 'textarea',
     },
     {
-      title: <FormattedMessage id="pages.searchTable.titleUpdatedAt" defaultMessage="来源" />,
+      title: "来源",
       sorter: true,
       dataIndex: 'srcType',
       valueType: 'textarea',
     },
     {
-      title: <FormattedMessage id="pages.searchTable.titleUpdatedAt" defaultMessage="展示状态" />,
+      title: "展示状态",
       sorter: true,
       dataIndex: 'showFlag',
       valueEnum: {
         true: {
-          text: <FormattedMessage id="1" defaultMessage="展示" />,
+          text: "展示",
           status: 'Processing',
         },
         false: {
-          text: <FormattedMessage id="1" defaultMessage="隐藏" />,
+          text: "隐藏",
           status: 'Error',
         },
       },
     },
     {
-      title: <FormattedMessage id="pages.searchTable.titleUpdatedAt" defaultMessage="题目状态" />,
+      title: "题目状态",
       sorter: true,
       dataIndex: 'errorFlag',
       valueEnum: {
         true: {
-          text: <FormattedMessage id="1" defaultMessage="有误" />,
+          text: "有误",
           status: 'Error',
         },
         false: {
-          text: <FormattedMessage id="1" defaultMessage="无误" />,
+          text: "无误",
           status: 'Processing',
         },
       },
     },
     {
-      title: <FormattedMessage id="pages.searchTable.titleOption" defaultMessage="操作" />,
+      title: "操作",
       dataIndex: 'option',
       valueType: 'option',
       align: 'center',
-      render: (_, record) => [
+      render: (_, record,index) => [
         <a
-          key="config"
+          key={index}
           onClick={() => {
-            handleUpdateModalVisible(true);
             setCurrentRow(record);
           }}
         >
-          <FormattedMessage
-            id="pages.searchTable.config"
-            defaultMessage={record.errorFlag ? '无误' : '有误'}
-          />
+          {record.errorFlag ? '无误' : '有误'}
         </a>,
         <a
-          key="config"
+          key={index}
           onClick={() => {
-            handleUpdateModalVisible(true);
             setCurrentRow(record);
           }}
         >
-          <FormattedMessage
-            id="pages.searchTable.config"
-            defaultMessage={record.errorFlag ? '展示' : '隐藏'}
-          />
+          {record.errorFlag ? '展示' : '隐藏'}
+
         </a>,
         <a
-          key="config"
+          key={index}
           onClick={() => {
-            handleUpdateModalVisible(true);
-            setCurrentRow(record);
+            setCurrentRowQuestion(record);
           }}
         >
-          <FormattedMessage id="pages.searchTable.config" defaultMessage="编辑" />
+          编辑
         </a>,
       ],
     },
   ];
-
   return (
     <PageContainer>
-      <ProTable<API.question, API.PageParams>
-        headerTitle={intl.formatMessage({
-          id: '1',
-          defaultMessage: '查询试题',
-        })}
+      <ProTable<API.Question, API.PageParams>
+        headerTitle='查询试题'
         rowSelection={{
           onChange: (_, selectedRows) => {
             setSelectedRows(selectedRows);
@@ -251,7 +220,6 @@ const TableList: React.FC = () => {
         }}
         request={queryList}
         columns={columns}
-        expandRowByClick={true}
         expandable={{
           expandedRowRender: (record) => (
             <div className={styles.question_content}>
@@ -266,10 +234,10 @@ const TableList: React.FC = () => {
             type="primary"
             key="primary"
             onClick={() => {
-              handleModalVisible(true);
+              handlCreateModalVisible(true);
             }}
           >
-            <PlusOutlined /> <FormattedMessage id="1" defaultMessage="添加试题" />
+            <PlusOutlined />添加试题
           </Button>,
         ]}
       />
@@ -277,9 +245,9 @@ const TableList: React.FC = () => {
         <FooterToolbar
           extra={
             <div>
-              <FormattedMessage id="pages.searchTable.chosen" defaultMessage="已选择" />{' '}
+              已选择{' '}
               <a style={{ fontWeight: 600 }}>{selectedRowsState.length}</a>{' '}
-              <FormattedMessage id="pages.searchTable.item" defaultMessage="道试题" />
+              道试题
               &nbsp;&nbsp;
             </div>
           }
@@ -291,7 +259,7 @@ const TableList: React.FC = () => {
               actionRef.current?.reloadAndRest?.();
             }}
           >
-            <FormattedMessage id="pages.searchTable.batchDeletion" defaultMessage="批量展示" />
+            批量展示
           </Button>
           <Button
             onClick={async () => {
@@ -300,7 +268,7 @@ const TableList: React.FC = () => {
               actionRef.current?.reloadAndRest?.();
             }}
           >
-            <FormattedMessage id="pages.searchTable.batchDeletion" defaultMessage="批量隐藏" />
+            批量隐藏
           </Button>
           <Button
             onClick={async () => {
@@ -309,7 +277,7 @@ const TableList: React.FC = () => {
               actionRef.current?.reloadAndRest?.();
             }}
           >
-            <FormattedMessage id="pages.searchTable.batchDeletion" defaultMessage="批量有误" />
+            批量有误
           </Button>
           <Button
             onClick={async () => {
@@ -318,78 +286,248 @@ const TableList: React.FC = () => {
               actionRef.current?.reloadAndRest?.();
             }}
           >
-            <FormattedMessage id="pages.searchTable.batchDeletion" defaultMessage="批量无误" />
+            批量无误
           </Button>
         </FooterToolbar>
       )}
       <ModalForm
-        title={intl.formatMessage({
-          id: '1',
-          defaultMessage: '添加试题',
-        })}
+        title='添加试题'
         width="1000px"
         visible={createModalVisible}
-        onVisibleChange={handleModalVisible}
+        onVisibleChange={handlCreateModalVisible}
         onFinish={async (value) => {
-          const success = await handleAdd(value as API.question);
+          const success = await handleEdit(value as API.Question);
           if (success) {
-            handleModalVisible(false);
+            (false);
             if (actionRef.current) {
               actionRef.current.reload();
             }
           }
         }}
       >
-        <ProFormList
-          name="users"
-          initialValue={[
+        <ProFormTextArea
+          width="lg"
+          name="questionContent"
+          label="试题内容"
+          placeholder="请输入试题内容"
+          rules={[
             {
-              useMode: 'chapter',
+              required: true,
             },
           ]}
-          creatorButtonProps={{
-            position: 'top',
-            creatorButtonText: '在建一行',
-          }}
-          creatorRecord={{
-            useMode: 'none',
-          }}
-        >
+        />
+        <ProFormGroup>
+          <ProFormText
+            width="md"
+            name="remark"
+            label="试题备注"
+            placeholder="请输入备注"
+
+          />
+          <ProFormCheckbox
+            name="showFlag"
+            label="是否展示"
+          />
+          <ProFormCheckbox
+            name="errorFlag"
+            label="是否有误"
+          />
+          <ProFormDigit label="难度级别" name="questionLevel" min={0} max={10} rules={[
+            {
+              required: true,
+            },
+          ]} />
           <ProFormSelect
+            width="md"
             options={[
+              { label: '未知', value: 0 },
+              { label: '单选', value: 1 },
+              { label: '多选', value: 2 },
+              { label: '判断', value: 3 },
+              { label: '填空', value: 4 },
+              { label: '问答', value: 5 },
+            ]}
+            name="questionType"
+            label="试题类型"
+            rules={[
               {
-                value: 'chapter',
-                label: '盖章后生效',
-              },
-              {
-                value: 'none',
-                label: '不生效',
+                required: true,
               },
             ]}
-            width="md"
-            name="useMode"
-            label="合同约定生效方式"
           />
+        </ProFormGroup>
+        <ProFormList
+          name="options"
+          label="选项列表"
+          creatorButtonProps={{
+            position: "top"
+          }}
+          initialValue={[]}
+          rules={[
+            {
+              validator: async (_, value) => {
+                if (value && value.length > 0) {
+                  let optionFlag = true;
+                  value.map((item: API.QuestionOption) => {
+                    if (isNull(item.optionContent) && isNil(item.answerFlag)) {
+                      optionFlag = false;
+                    }
+                  })
+                  return optionFlag;
+                }
+                throw new Error('至少要有一项！');
+              },
+            },
+          ]}
+
+
+        >
+          <ProFormGroup >
+            <ProFormText
+              name="optionContent"
+              placeholder="请输入选项内容"
+              width="lg"
+            />
+            <ProFormSelect
+              name="answerFlag"
+              width="sm"
+              options={[
+                {
+                  value: 1,
+                  label: '是',
+                },
+                {
+                  value: 0,
+                  label: '否',
+                },
+              ]}
+              placeholder="请选择答案标志"
+            />
+          </ProFormGroup>
         </ProFormList>
       </ModalForm>
-      <UpdateForm
-        onSubmit={async (value) => {
-          const success = await handleUpdate(value);
+
+      <ModalForm<API.Question>
+        title={'编辑试题：' + currentQuestion?.id  }
+        width="1000px"
+        visible={updateModalVisible}
+        onVisibleChange={handleUpdateModalVisible}
+        initialValues = {currentQuestion}
+        onFinish={async (value) => {
+          const success = await handleEdit(value as API.Question);
           if (success) {
             handleUpdateModalVisible(false);
-            setCurrentRow(undefined);
             if (actionRef.current) {
               actionRef.current.reload();
             }
           }
         }}
-        onCancel={() => {
-          handleUpdateModalVisible(false);
-          setCurrentRow(undefined);
-        }}
-        updateModalVisible={updateModalVisible}
-        values={currentRow || {}}
-      />
+      >
+        <ProFormTextArea
+          width="lg"
+          name="questionContent"
+          label="试题内容"
+          placeholder="请输入试题内容"
+          rules={[
+            {
+              required: true,
+            },
+          ]}
+        />
+        <ProFormGroup>
+          <ProFormText
+            width="md"
+            name="remark"
+            label="试题备注"
+            initialValue={currentQuestion?.remark}
+            placeholder="请输入备注"
+
+          />
+          <ProFormCheckbox
+            name="showFlag"
+            label="是否展示"
+            initialValue={currentQuestion?.showFlag}
+          />
+          <ProFormCheckbox
+            name="errorFlag"
+            label="是否有误"
+            initialValue={currentQuestion?.errorFlag}
+          />
+          <ProFormDigit label="难度级别" name="questionLevel" min={0} max={10} initialValue={currentQuestion?.questionLevel} rules={[
+            {
+              required: true,
+            },
+
+          ]} />
+          <ProFormSelect
+            width="md"
+            initialValue={currentQuestion?.questionType}
+            options={[
+              { label: '未知', value: 0 },
+              { label: '单选', value: 1 },
+              { label: '多选', value: 2 },
+              { label: '判断', value: 3 },
+              { label: '填空', value: 4 },
+              { label: '问答', value: 5 },
+            ]}
+            name="questionType"
+            label="试题类型"
+            rules={[
+              {
+                required: true,
+              },
+            ]}
+          />
+        </ProFormGroup>
+        <ProFormList
+          name="options"
+          label="选项列表"
+          creatorButtonProps={{
+            position: "top"
+          }}
+          initialValue={currentQuestion?.options}
+          rules={[
+            {
+              validator: async (_, value) => {
+                if (value && value.length > 0) {
+                  let optionFlag = true;
+                  value.map((item: API.QuestionOption) => {
+                    if (isNull(item.optionContent) && isNil(item.answerFlag)) {
+                      optionFlag = false;
+                    }
+                  })
+                  return optionFlag;
+                }
+                throw new Error('至少要有一项！');
+              },
+            },
+          ]}
+
+
+        >
+          <ProFormGroup >
+            <ProFormText
+              name="optionContent"
+              placeholder="请输入选项内容"
+            />
+            <ProFormSelect
+              name="answerFlag"
+              width="sm"
+              options={[
+                {
+                  value: '1',
+                  label: '是',
+                },
+                {
+                  value: '0',
+                  label: '否',
+                },
+              ]}
+              placeholder="请选择答案标志"
+            />
+          </ProFormGroup>
+        </ProFormList>
+      </ModalForm>
 
       <Drawer
         width={600}
@@ -400,7 +538,7 @@ const TableList: React.FC = () => {
         }}
       >
         {currentRow?.id && (
-          <ProDescriptions<API.question>
+          <ProDescriptions<API.Question>
             column={1}
             title={currentRow?.id}
             request={async () => ({
@@ -409,18 +547,17 @@ const TableList: React.FC = () => {
             params={{
               id: currentRow?.id,
             }}
-            columns={columns as ProDescriptionsItemProps<API.question>[]}
+            columns={columns as ProDescriptionsItemProps<API.Question>[]}
           />
         )}
         <div>试题内容</div>
         <div>{currentRow?.questionContent}</div>
-        <div>选项</div>
+        <br />
         {currentRow?.options?.map((item) => {
           return (
             <div>
-              <Checkbox checked={item.answerFlag}>{item.optionName}、</Checkbox>&nbsp;
+              <Checkbox checked={item.answerFlag == true}>{item.optionName}、</Checkbox>&nbsp;
               {item.optionContent}
-              {item.answerFlag} <br />
             </div>
           );
         })}
@@ -429,4 +566,5 @@ const TableList: React.FC = () => {
   );
 };
 
-export default TableList;
+export default QuestionPannelList;
+

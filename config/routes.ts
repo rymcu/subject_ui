@@ -33,14 +33,6 @@
     component: './question',
   },
   {
-    path: '/question/modify',
-    name: 'list.question-modify',
-    icon: 'smile',
-    component: './question/components/modify',
-    hideInMenu: true,
-  },
-
-  {
     path: '/',
     redirect: '/welcome',
   },
