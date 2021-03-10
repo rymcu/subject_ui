@@ -13,7 +13,7 @@ import { MehTwoTone, PlusOutlined } from '@ant-design/icons';
 import styles from './index.less';
 import { removeRule } from '@/services/ant-design-pro/rule';
 import { isNil, isNull } from 'lodash';
-
+import UpdateForm from './components/UpdateForm';
 /**
  * 添加节点
  *
@@ -68,10 +68,6 @@ const QuestionPannelList: React.FC = () => {
   const [currentRow, setCurrentRow] = useState<API.Question>();
   const [currentQuestion, setCurrentQuestion] = useState<API.Question>();
   const [selectedRowsState, setSelectedRows] = useState<API.Question[]>([]);
-  const setCurrentRowQuestion = (item: API.Question) => {
-    setCurrentQuestion(item)
-    handleUpdateModalVisible(true);
-  }
   const columns: ProColumns<API.Question>[] = [
     {
       title: "试题编号",
@@ -175,7 +171,7 @@ const QuestionPannelList: React.FC = () => {
       dataIndex: 'option',
       valueType: 'option',
       align: 'center',
-      render: (_, record,index) => [
+      render: (_, record, index) => [
         <a
           key={index}
           onClick={() => {
@@ -196,7 +192,8 @@ const QuestionPannelList: React.FC = () => {
         <a
           key={index}
           onClick={() => {
-            setCurrentRowQuestion(record);
+            setCurrentRow(record)
+            handleUpdateModalVisible(true);
           }}
         >
           编辑
@@ -407,128 +404,25 @@ const QuestionPannelList: React.FC = () => {
         </ProFormList>
       </ModalForm>
 
-      <ModalForm<API.Question>
-        title={'编辑试题：' + currentQuestion?.id  }
-        width="1000px"
-        visible={updateModalVisible}
-        onVisibleChange={handleUpdateModalVisible}
-        initialValues = {currentQuestion}
-        onFinish={async (value) => {
-          const success = await handleEdit(value as API.Question);
+      
+      <UpdateForm
+        onSubmit={async (value) => {
+          const success = await handleEdit(value);
           if (success) {
             handleUpdateModalVisible(false);
+            setCurrentRow(undefined);
             if (actionRef.current) {
               actionRef.current.reload();
             }
           }
         }}
-      >
-        <ProFormTextArea
-          width="lg"
-          name="questionContent"
-          label="试题内容"
-          placeholder="请输入试题内容"
-          rules={[
-            {
-              required: true,
-            },
-          ]}
-        />
-        <ProFormGroup>
-          <ProFormText
-            width="md"
-            name="remark"
-            label="试题备注"
-            initialValue={currentQuestion?.remark}
-            placeholder="请输入备注"
-
-          />
-          <ProFormCheckbox
-            name="showFlag"
-            label="是否展示"
-            initialValue={currentQuestion?.showFlag}
-          />
-          <ProFormCheckbox
-            name="errorFlag"
-            label="是否有误"
-            initialValue={currentQuestion?.errorFlag}
-          />
-          <ProFormDigit label="难度级别" name="questionLevel" min={0} max={10} initialValue={currentQuestion?.questionLevel} rules={[
-            {
-              required: true,
-            },
-
-          ]} />
-          <ProFormSelect
-            width="md"
-            initialValue={currentQuestion?.questionType}
-            options={[
-              { label: '未知', value: 0 },
-              { label: '单选', value: 1 },
-              { label: '多选', value: 2 },
-              { label: '判断', value: 3 },
-              { label: '填空', value: 4 },
-              { label: '问答', value: 5 },
-            ]}
-            name="questionType"
-            label="试题类型"
-            rules={[
-              {
-                required: true,
-              },
-            ]}
-          />
-        </ProFormGroup>
-        <ProFormList
-          name="options"
-          label="选项列表"
-          creatorButtonProps={{
-            position: "top"
-          }}
-          initialValue={currentQuestion?.options}
-          rules={[
-            {
-              validator: async (_, value) => {
-                if (value && value.length > 0) {
-                  let optionFlag = true;
-                  value.map((item: API.QuestionOption) => {
-                    if (isNull(item.optionContent) && isNil(item.answerFlag)) {
-                      optionFlag = false;
-                    }
-                  })
-                  return optionFlag;
-                }
-                throw new Error('至少要有一项！');
-              },
-            },
-          ]}
-
-
-        >
-          <ProFormGroup >
-            <ProFormText
-              name="optionContent"
-              placeholder="请输入选项内容"
-            />
-            <ProFormSelect
-              name="answerFlag"
-              width="sm"
-              options={[
-                {
-                  value: '1',
-                  label: '是',
-                },
-                {
-                  value: '0',
-                  label: '否',
-                },
-              ]}
-              placeholder="请选择答案标志"
-            />
-          </ProFormGroup>
-        </ProFormList>
-      </ModalForm>
-
+        onCancel={() => {
+          handleUpdateModalVisible(false);
+          setCurrentRow(undefined);
+        }}
+        updateModalVisible={updateModalVisible}
+        values={currentRow || {}}
+      />
       <Drawer
         width={600}
         visible={showDetail}
