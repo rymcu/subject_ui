@@ -25,6 +25,7 @@ declare namespace API {
     srcType?: string;
     errorFlag?: boolean;
     options?: QuestionOption[];
+    answer?: string;
   };
 
   type QuestionInfoList = {

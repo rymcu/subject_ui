@@ -1,10 +1,9 @@
 import { Button, message, Drawer } from 'antd';
 import React, { useState, useRef } from 'react';
-import { useIntl } from 'umi';
 import { PageContainer, FooterToolbar } from '@ant-design/pro-layout';
 import { ProColumns, ActionType } from '@ant-design/pro-table';
 import ProTable from '@ant-design/pro-table';
-import ProForm, { ModalForm, ProFormCheckbox, ProFormDigit, ProFormGroup, ProFormList, ProFormSelect, ProFormText, ProFormTextArea } from '@ant-design/pro-form';
+import { ModalForm, ProFormCheckbox, ProFormDigit, ProFormGroup, ProFormList, ProFormSelect, ProFormText, ProFormTextArea } from '@ant-design/pro-form';
 import type { ProDescriptionsItemProps } from '@ant-design/pro-descriptions';
 import ProDescriptions from '@ant-design/pro-descriptions';
 import { editQuestion, queryList } from '@/services/question/question';
@@ -19,10 +18,10 @@ import UpdateForm from './components/UpdateForm';
  *
  * @param fields
  */
-const handleEdit = async (fields: API.Question) => {
+const handleEdit = async (sqId: number, fields: API.Question) => {
   const hide = message.loading('正在添加');
   try {
-    editQuestion({ ...fields });
+    editQuestion(sqId, { ...fields });
     hide();
     message.success('添加成功');
     return true;
@@ -66,7 +65,6 @@ const QuestionPannelList: React.FC = () => {
 
   const actionRef = useRef<ActionType>();
   const [currentRow, setCurrentRow] = useState<API.Question>();
-  const [currentQuestion, setCurrentQuestion] = useState<API.Question>();
   const [selectedRowsState, setSelectedRows] = useState<API.Question[]>([]);
   const columns: ProColumns<API.Question>[] = [
     {
@@ -116,6 +114,13 @@ const QuestionPannelList: React.FC = () => {
         },
       },
       sorter: true,
+    },
+    {
+      title: "答案",
+      dataIndex: 'answer',
+      sorter: true,
+      hideInForm: true,
+      valueType: 'text',
     },
     {
       title: "难度等级",
@@ -293,7 +298,7 @@ const QuestionPannelList: React.FC = () => {
         visible={createModalVisible}
         onVisibleChange={handlCreateModalVisible}
         onFinish={async (value) => {
-          const success = await handleEdit(value as API.Question);
+          const success = await handleEdit(0, value as API.Question);
           if (success) {
             (false);
             if (actionRef.current) {
@@ -318,6 +323,11 @@ const QuestionPannelList: React.FC = () => {
             width="md"
             name="remark"
             label="试题备注"
+            rules={[
+              {
+                required: true,
+              },
+            ]}
             placeholder="请输入备注"
 
           />
@@ -373,7 +383,7 @@ const QuestionPannelList: React.FC = () => {
                   return optionFlag;
                 }
                 throw new Error('至少要有一项！');
-              },
+              }
             },
           ]}
 
@@ -404,10 +414,10 @@ const QuestionPannelList: React.FC = () => {
         </ProFormList>
       </ModalForm>
 
-      
+
       <UpdateForm
         onSubmit={async (value) => {
-          const success = await handleEdit(value);
+          const success = await handleEdit(currentRow?.id || 0, value);
           if (success) {
             handleUpdateModalVisible(false);
             setCurrentRow(undefined);

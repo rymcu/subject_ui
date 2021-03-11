@@ -38,8 +38,8 @@ export async function updateRule(options?: { [key: string]: any }) {
 }
 
 /** 新建规则 POST /api/question */
-export async function editQuestion(body: API.Question,options?: { [key: string]: any }) {
-  return request<API.Question>('/api/question', {
+export async function editQuestion(sqId:number,body: API.Question,options?: { [key: string]: any }) {
+  return request<API.Question>('/api/question/'+sqId, {
     method: 'POST',
     data: body
   });
