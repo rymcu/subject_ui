@@ -8,11 +8,7 @@ declare namespace API {
   };
 
   type QuestionOption = {
-    id?: number;
-    subjectQuestionId?: number;
-    optionName?: string;
     optionContent?: string;
-    answerFlag?: boolean;
   };
 
   type Question = {

@@ -318,6 +318,17 @@ const QuestionPannelList: React.FC = () => {
             },
           ]}
         />
+        <ProFormTextArea
+          width="lg"
+          name="answer"
+          label="答案"
+          placeholder="请输入答案"
+          rules={[
+            {
+              required: true,
+            },
+          ]}
+        />
         <ProFormGroup>
           <ProFormText
             width="md"
@@ -370,45 +381,12 @@ const QuestionPannelList: React.FC = () => {
             position: "top"
           }}
           initialValue={[]}
-          rules={[
-            {
-              validator: async (_, value) => {
-                if (value && value.length > 0) {
-                  let optionFlag = true;
-                  value.map((item: API.QuestionOption) => {
-                    if (isNull(item.optionContent) && isNil(item.answerFlag)) {
-                      optionFlag = false;
-                    }
-                  })
-                  return optionFlag;
-                }
-                throw new Error('至少要有一项！');
-              }
-            },
-          ]}
-
-
         >
           <ProFormGroup >
             <ProFormText
               name="optionContent"
               placeholder="请输入选项内容"
               width="lg"
-            />
-            <ProFormSelect
-              name="answerFlag"
-              width="sm"
-              options={[
-                {
-                  value: 1,
-                  label: '是',
-                },
-                {
-                  value: 0,
-                  label: '否',
-                },
-              ]}
-              placeholder="请选择答案标志"
             />
           </ProFormGroup>
         </ProFormList>

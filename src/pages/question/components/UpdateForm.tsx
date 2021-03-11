@@ -10,7 +10,6 @@ import {
   ProFormGroup,
   ProFormList,
 } from '@ant-design/pro-form';
-import { isNull, isNil } from 'lodash';
 
 export type FormValueType = {
   target?: string;
@@ -139,28 +138,17 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
           creatorButtonProps={{
             position: 'bottom'
           }}
-          rules={[
-            {
-              validator: async (_, value) => {
-                if (value && value.length > 0) {
-                  let optionFlag = true;
-                  value.map((item: API.QuestionOption) => {
-                    if (isNull(item.optionContent) && isNil(item.answerFlag)) {
-                      optionFlag = false;
-                    }
-                  })
-                  return optionFlag;
-                }
-                throw new Error('至少要有一项！');
-              },
-            },
-          ]}
         >
             <ProFormTextArea
               name="optionContent"
               label="选项内容"
               width='xl'
               placeholder="请输入选项内容"
+              rules={[
+                {
+                  required: true,
+                },
+              ]}
             />
         </ProFormList>
       </StepsForm.StepForm>

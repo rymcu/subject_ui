@@ -29,14 +29,6 @@ export async function getBySqId(sqId?: number) {
   });
 }
 
-/** 新建规则 PUT /api/question */
-export async function updateRule(options?: { [key: string]: any }) {
-  return request<API.QuestionOption>('/api/question', {
-    method: 'PUT',
-    ...(options || {}),
-  });
-}
-
 /** 新建规则 POST /api/question */
 export async function editQuestion(sqId:number,body: API.Question,options?: { [key: string]: any }) {
   return request<API.Question>('/api/question/'+sqId, {
