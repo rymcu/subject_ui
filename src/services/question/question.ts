@@ -22,24 +22,24 @@ export async function queryList(
   });
 }
 
-/** 获取题列表 GET /api/question */
+/** 获取题 GET /api/question */
 export async function getBySqId(sqId?: number) {
   return request<API.QuestionRsp>('/api/question/' + sqId, {
     method: 'GET',
   });
 }
 
-/** 新建规则 POST /api/question */
+/** 编辑试题or添加试题 POST /api/question */
 export async function editQuestion(sqId:number,body: API.Question,options?: { [key: string]: any }) {
-  return request<API.Question>('/api/question/'+sqId, {
+  return request<API.QuestionRsp>('/api/question/'+sqId, {
     method: 'POST',
     data: body
   });
 }
 
-/** 删除规则 DELETE /api/question */
-export async function removeQuestion(options?: { [key: string]: any }) {
-  return request<Record<string, any>>('/api/question', {
+/** 隐藏 hide /api/question/hide */
+export async function hideQuestion(options?: { [key: string]: any }) {
+  return request<Record<string, any>>('/api/question/hide', {
     method: 'DELETE',
     ...(options || {}),
   });

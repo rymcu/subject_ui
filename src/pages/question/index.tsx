@@ -7,11 +7,9 @@ import { ModalForm, ProFormCheckbox, ProFormDigit, ProFormGroup, ProFormList, Pr
 import type { ProDescriptionsItemProps } from '@ant-design/pro-descriptions';
 import ProDescriptions from '@ant-design/pro-descriptions';
 import { editQuestion, queryList } from '@/services/question/question';
-import Checkbox from 'antd/lib/checkbox/Checkbox';
 import { MehTwoTone, PlusOutlined } from '@ant-design/icons';
 import styles from './index.less';
 import { removeRule } from '@/services/ant-design-pro/rule';
-import { isNil, isNull } from 'lodash';
 import UpdateForm from './components/UpdateForm';
 /**
  * 添加节点
@@ -19,12 +17,16 @@ import UpdateForm from './components/UpdateForm';
  * @param fields
  */
 const handleEdit = async (sqId: number, fields: API.Question) => {
-  const hide = message.loading('正在添加');
+  const hide = message.loading('正在提交');
   try {
-    editQuestion(sqId, { ...fields });
+    const resultRsp = await editQuestion(sqId, { ...fields });
     hide();
-    message.success('添加成功');
-    return true;
+    if(resultRsp.success) {
+      message.success('提交成功');
+      return true;
+    }
+    message.error('提交失败，失败原因：' + resultRsp.message);
+    return false;
   } catch (error) {
     hide();
     message.error('添加失败请重试！');
@@ -33,29 +35,30 @@ const handleEdit = async (sqId: number, fields: API.Question) => {
 };
 
 
-/**
- * 删除节点
- *
- * @param selectedRows
- */
-const handleRemove = async (selectedRows: API.Question[]) => {
-  const hide = message.loading('正在删除');
-  if (!selectedRows) return true;
-  try {
-    await removeRule({
-      key: selectedRows.map((row) => row.id),
-    });
-    hide();
-    message.success('删除成功，即将刷新');
-    return true;
-  } catch (error) {
-    hide();
-    message.error('删除失败，请重试');
-    return false;
-  }
-};
+// /**
+//  * 删除节点
+//  *
+//  * @param selectedRows
+//  */
+// const handleRemove = async (selectedRows: API.Question[]) => {
+//   const hide = message.loading('正在删除');
+//   if (!selectedRows) return true;
+//   try {
+//     await removeRule({
+//       key: selectedRows.map((row) => row.id),
+//     });
+//     hide();
+//     message.success('删除成功，即将刷新');
+//     return true;
+//   } catch (error) {
+//     hide();
+//     message.error('删除失败，请重试');
+//     return false;
+//   }
+// };
 
 const QuestionPannelList: React.FC = () => {
+  const optionName = "ABCDEFG";
   /** 新建窗口的弹窗 */
   const [createModalVisible, handlCreateModalVisible] = useState<boolean>(false);
   /** 分布更新窗口的弹窗 */
@@ -177,23 +180,23 @@ const QuestionPannelList: React.FC = () => {
       valueType: 'option',
       align: 'center',
       render: (_, record, index) => [
-        <a
-          key={index}
-          onClick={() => {
-            setCurrentRow(record);
-          }}
-        >
-          {record.errorFlag ? '无误' : '有误'}
-        </a>,
-        <a
-          key={index}
-          onClick={() => {
-            setCurrentRow(record);
-          }}
-        >
-          {record.errorFlag ? '展示' : '隐藏'}
+        // <a
+        //   key={index}
+        //   onClick={() => {
+        //     setCurrentRow(record);
+        //   }}
+        // >
+        //   {record.errorFlag ? '无误' : '有误'}
+        // </a>,
+        // <a
+        //   key={index}
+        //   onClick={() => {
+        //     setCurrentRow(record);
+        //   }}
+        // >
+        //   {record.errorFlag ? '展示' : '隐藏'}
 
-        </a>,
+        // </a>,
         <a
           key={index}
           onClick={() => {
@@ -256,34 +259,7 @@ const QuestionPannelList: React.FC = () => {
         >
           <Button
             onClick={async () => {
-              await handleRemove(selectedRowsState);
-              setSelectedRows([]);
-              actionRef.current?.reloadAndRest?.();
-            }}
-          >
-            批量展示
-          </Button>
-          <Button
-            onClick={async () => {
-              await handleRemove(selectedRowsState);
-              setSelectedRows([]);
-              actionRef.current?.reloadAndRest?.();
-            }}
-          >
-            批量隐藏
-          </Button>
-          <Button
-            onClick={async () => {
-              await handleRemove(selectedRowsState);
-              setSelectedRows([]);
-              actionRef.current?.reloadAndRest?.();
-            }}
-          >
-            批量有误
-          </Button>
-          <Button
-            onClick={async () => {
-              await handleRemove(selectedRowsState);
+              // await handleRemove(selectedRowsState);
               setSelectedRows([]);
               actionRef.current?.reloadAndRest?.();
             }}
@@ -435,11 +411,11 @@ const QuestionPannelList: React.FC = () => {
         <div>试题内容</div>
         <div>{currentRow?.questionContent}</div>
         <br />
-        {currentRow?.options?.map((item) => {
+        <div>正确答案：【&nbsp;{currentRow?.answer}&nbsp;】</div>
+        {currentRow?.options?.map((item,index) => {
           return (
             <div>
-              <Checkbox checked={item.answerFlag == true}>{item.optionName}、</Checkbox>&nbsp;
-              {item.optionContent}
+              <div><span>{optionName.split("")[index]}：</span>{item.optionContent} </div>
             </div>
           );
         })}
